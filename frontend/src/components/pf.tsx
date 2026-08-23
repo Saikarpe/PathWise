@@ -51,14 +51,48 @@ export function Section({
   );
 }
 
-export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-card px-5 py-4">
+/**
+ * A headline number. Pass `onClick` to make it a door into more detail
+ * ("6 skills proficient" is a fine summary, but the learner asking "which
+ * ones?" shouldn't be a dead end) — it becomes a real button with a hover
+ * affordance and a "view" hint instead of a static tile.
+ */
+export function Stat({
+  label,
+  value,
+  sub,
+  onClick,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: string;
+  onClick?: () => void;
+}) {
+  const className = cn(
+    "w-full rounded-xl border border-border bg-card px-5 py-4 text-left",
+    onClick && "cursor-pointer transition-colors hover:border-primary/40 hover:bg-accent/30",
+  );
+  const content = (
+    <>
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-2 font-display text-2xl font-semibold tabular-nums">{value}</p>
-      {sub ? <p className="mt-1 text-xs text-muted-foreground">{sub}</p> : null}
-    </div>
+      {sub || onClick ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          {sub}
+          {sub && onClick ? " · " : ""}
+          {onClick ? <span className="text-primary">view →</span> : null}
+        </p>
+      ) : null}
+    </>
   );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {content}
+      </button>
+    );
+  }
+  return <div className={className}>{content}</div>;
 }
 
 export function Meter({
