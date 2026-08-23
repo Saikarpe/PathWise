@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PathFinder">
+  <!--
+    A learning path: three waypoints climbing left-to-right, joined by the
+    route between them, with the final one filled to read as "the goal".
+    Chosen over a book/cap/lightbulb because the product's actual claim is
+    the *ordering* — a sequence of steps toward a target — not education in
+    general. Deliberately only four shapes so it still reads at 16px.
+  -->
+  <rect width="64" height="64" rx="14" fill="#1B47C4"/>
+  <path d="M16 46 L30 34 L44 20"
+        fill="none" stroke="#FFFFFF" stroke-width="4.5"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <circle cx="16" cy="46" r="5" fill="#FFFFFF" opacity="0.75"/>
+  <circle cx="30" cy="34" r="5" fill="#FFFFFF" opacity="0.75"/>
+  <circle cx="45" cy="19" r="8" fill="#FFFFFF"/>
+</svg>

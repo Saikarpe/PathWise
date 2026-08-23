@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PathMark } from "@/components/PathMark";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -51,7 +51,7 @@ function Landing() {
         <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
           <span className="flex items-center gap-2">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground">
-              <GraduationCap className="h-4 w-4" />
+              <PathMark className="h-4 w-4" />
             </span>
             <span className="font-display text-base font-bold tracking-tight">PathFinder</span>
           </span>

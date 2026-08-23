@@ -100,6 +100,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
       },
+      // SVG first — every current browser prefers it over the .ico when
+      // both are declared. The .ico (rasterized from the same design, see
+      // scripts in git history — no image library needed, hand-encoded PNG
+      // wrapped in a minimal ICO container) stays as the fallback for the
+      // handful of contexts that still expect one (older Safari, OS-level
+      // shortcuts). Both replace the default Lovable mark from the export.
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
