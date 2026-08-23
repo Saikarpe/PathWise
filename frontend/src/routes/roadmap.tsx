@@ -21,8 +21,10 @@ import {
   Drivers,
   Empty,
   ErrorNote,
+  FeedbackBar,
   Loading,
   Notice,
+  PaceCalibration,
   PageHeader,
   Section,
   Stat,
@@ -219,6 +221,8 @@ function RoadmapPage() {
               </Section>
             ) : null}
 
+            <PaceCalibration totalHours={pathQ.data?.total_hours} />
+
             <Section title="How this plan was built">
               <div className="rounded-xl border border-border bg-card px-6 py-5">
                 <p className="text-sm text-muted-foreground">
@@ -251,7 +255,10 @@ function RoadmapPage() {
       <Sheet open={open !== null} onOpenChange={(v) => !v && setOpen(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle>{open?.title}</SheetTitle>
+            <div className="flex items-start justify-between gap-4">
+              <SheetTitle>{open?.title}</SheetTitle>
+              <FeedbackBar courseId={open?.course_id} pathId={pathId} className="shrink-0" />
+            </div>
             <SheetDescription>
               {[open?.type, open?.hours ? `${open.hours}h` : null, open?.phase_name]
                 .filter(Boolean)

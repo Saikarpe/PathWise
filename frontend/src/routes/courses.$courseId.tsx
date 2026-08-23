@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
@@ -78,10 +79,11 @@ function CourseDetailPage() {
     setBusy(status);
     setActionError(null);
     try {
-      await api(`/api/paths/${pathId}/progress`, {
+      const result = await api<{ narrative?: string }>(`/api/paths/${pathId}/progress`, {
         method: "POST",
         body: { course_id: courseId, status },
       });
+      if (result.narrative) toast.success(result.narrative);
       q.refetch();
     } catch (err) {
       setActionError(err);

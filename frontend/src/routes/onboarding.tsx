@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Chip, ErrorNote, Loading, Meter, Notice, Section, Stat } from "@/components/pf";
+import { Chip, ErrorNote, Loading, Meter, Notice, PaceCalibration, Section, Stat } from "@/components/pf";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -111,6 +111,12 @@ function OnboardingPage() {
   const [preview, setPreview] = useState<PathPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  // Populated only when the parse comes back unplannable — real catalogue
+  // tracks nearest to the raw text, so "I could not understand that" turns
+  // into clickable options instead of a dead end the learner has to guess
+  // their way out of.
+  const [clarifyOptions, setClarifyOptions] = useState<string[] | null>(null);
+  const [clarifying, setClarifying] = useState(false);
 
   const vocab = useQuery({
     queryKey: ["vocabulary"],
@@ -122,13 +128,14 @@ function OnboardingPage() {
   const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
     set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
-  const interpret = async () => {
+  const interpret = async (text: string = goalText) => {
     setBusy(true);
     setError(null);
+    setClarifyOptions(null);
     try {
       const r = await api<Interpretation>("/api/profile/interpret", {
         method: "POST",
-        body: { text: goalText },
+        body: { text },
       });
       setInterpretation(r);
       if (r.experience_level) setLevel(r.experience_level);
@@ -137,11 +144,37 @@ function OnboardingPage() {
       if (r.formats?.length) setFormats(r.formats);
       if (r.providers?.length) setProviders(r.providers);
       setStep(2);
+      // Nothing matched: fall back to semantic course search on the raw text
+      // and offer the nearest real tracks as one-click clarifications, rather
+      // than leaving the learner to guess how to rephrase a rejected sentence.
+      if (r.plannable === false) {
+        setClarifying(true);
+        try {
+          const found = await api<{ results?: { track?: string }[] }>("/api/catalog/search", {
+            method: "POST",
+            body: { q: text, limit: 12 },
+          });
+          const tracks = [
+            ...new Set((found.results ?? []).map((c) => c.track).filter((t): t is string => !!t)),
+          ].slice(0, 5);
+          setClarifyOptions(tracks);
+        } catch {
+          setClarifyOptions([]);
+        } finally {
+          setClarifying(false);
+        }
+      }
     } catch (err) {
       setError(err);
     } finally {
       setBusy(false);
     }
+  };
+
+  const pickClarification = (track: string) => {
+    const clarified = `${goalText.trim()} — specifically ${track}`;
+    setGoalText(clarified);
+    interpret(clarified).catch(() => {});
   };
 
   const generatePreview = async () => {
@@ -234,7 +267,7 @@ function OnboardingPage() {
               </Chip>
             ))}
           </div>
-          <Button size="lg" disabled={!goalText.trim() || busy} onClick={interpret}>
+          <Button size="lg" disabled={!goalText.trim() || busy} onClick={() => interpret()}>
             {busy ? "Reading…" : "Read my goal"}
           </Button>
         </div>
@@ -254,9 +287,32 @@ function OnboardingPage() {
           </div>
 
           {interpretation.plannable === false ? (
-            <Notice>
-              We couldn’t find enough to plan from. Try naming a role or a subject you want to learn.
-            </Notice>
+            <div className="space-y-3">
+              <Notice>
+                We couldn’t match that to anything in the catalogue on its own.
+              </Notice>
+              {clarifying ? (
+                <p className="text-sm text-muted-foreground">Looking for the closest tracks…</p>
+              ) : clarifyOptions?.length ? (
+                <div>
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    Did you mean one of these?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {clarifyOptions.map((track) => (
+                      <Chip key={track} onClick={() => pickClarification(track)}>
+                        {track}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              ) : clarifyOptions !== null ? (
+                <p className="text-sm text-muted-foreground">
+                  Nothing close came up either — try naming a specific role or subject (e.g.
+                  “structural engineering” or “become a security analyst”).
+                </p>
+              ) : null}
+            </div>
           ) : null}
 
           {interpretation.resolved_tracks?.length ? (
@@ -437,6 +493,8 @@ function OnboardingPage() {
               </p>
             </div>
           ) : null}
+
+          <PaceCalibration totalHours={preview.plan?.total_hours} currentHours={hours} />
 
           <div className="space-y-8">
             {phasesFromItems(preview.plan?.items).map(([phaseName, steps], i) => (

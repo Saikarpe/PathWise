@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.ml.engine import Engine, get_engine
+from app.ml.skills import PROFICIENT_THRESHOLD
 from app.models.activity import Enrollment
 from app.models.learning_path import LearningPath, Milestone, PathItem
 from app.models.user import User, utcnow
@@ -236,8 +237,20 @@ def update_progress(
     """
     path = _owned_path(db, user, path_id)
     assert engine.catalog is not None
-    if engine.catalog.pos(payload.course_id) is None:
+    # Projects and assessments aren't real catalogue entries — create_path
+    # gives them a synthetic id ("ASS-0", "PRO-3", ...) purely so progress can
+    # be tracked uniformly. Rejecting anything absent from the catalogue would
+    # 404 on exactly those two item types, which is most of a typical path.
+    # Legitimate here means "actually on this path" for a synthetic id, or
+    # "a real course" otherwise — either is enough to accept it.
+    on_this_path = any(item.course_id == payload.course_id for item in path.items)
+    if not on_this_path and engine.catalog.pos(payload.course_id) is None:
         raise HTTPException(status_code=404, detail="Unknown course id.")
+
+    # Snapshotted before any mutation below: the session autoflushes pending
+    # changes ahead of a query, so taking this "before" reading any later than
+    # here would already see the completion it is supposed to be a baseline for.
+    skills_before = engine.current_skills(db, user)
 
     enrollment = db.scalar(
         select(Enrollment).where(
@@ -263,13 +276,32 @@ def update_progress(
         enrollment.completed_at = enrollment.completed_at or utcnow()
         if not enrollment.hours_logged:
             pos = engine.catalog.pos(payload.course_id)
-            enrollment.hours_logged = float(engine.catalog.hours[pos])  # type: ignore[index]
+            if pos is not None:
+                enrollment.hours_logged = float(engine.catalog.hours[pos])  # type: ignore[index]
+            else:
+                # Synthetic project/assessment id — not in the catalogue, so
+                # fall back to the hours the plan itself estimated for it.
+                item = next((i for i in path.items if i.course_id == payload.course_id), None)
+                enrollment.hours_logged = float(item.hours) if item else 0.0
     db.commit()
 
     adaptation = None
+    narrative = None
     if payload.status == "completed" and not was_completed:
         adaptation = engine.record_feedback(
             db, user, event_type="completed", course_id=payload.course_id, path_id=path.id
+        )
+        skills_after = engine.current_skills(db, user)
+        newly_proficient = sorted(
+            skill
+            for skill, level in skills_after.items()
+            if level >= PROFICIENT_THRESHOLD and skills_before.get(skill, 0.0) < PROFICIENT_THRESHOLD
+        )
+        item = next((i for i in path.items if i.course_id == payload.course_id), None)
+        narrative = _completion_narrative(
+            item.title if item else payload.course_id,
+            newly_proficient,
+            list(item.skills or []) if item else [],
         )
     elif payload.status == "in_progress" and enrollment.progress_pct < 100:
         adaptation = engine.record_feedback(
@@ -281,6 +313,7 @@ def update_progress(
         "status": enrollment.status,
         "progress_pct": enrollment.progress_pct,
         "hours_logged": enrollment.hours_logged,
+        "narrative": narrative,
         "adaptation": adaptation,
         "dashboard": engine.dashboard(db, user),
     }
@@ -368,3 +401,24 @@ def _path_payload(db: Session, engine: Engine, user: User, path: LearningPath) -
     response.milestones = milestones
     response.explanation = engine.explain_path(path)
     return response.model_dump()
+
+
+def _completion_narrative(
+    title: str, newly_proficient: list[str], practiced: list[str]
+) -> str:
+    """What to tell the learner right after they finish a course.
+
+    Deliberately not the ranking-model adaptation note (see
+    ``Engine.record_feedback``'s ``explanation``) — that says what the
+    *recommender* just changed about itself, which is honest but not what a
+    learner wants to hear the moment they finish something. This says what
+    *they* just gained, which is why it is returned as a separate field
+    (``narrative``) rather than folded into ``adaptation``.
+    """
+    if newly_proficient:
+        skills = ", ".join(newly_proficient[:4])
+        return f'Nice — finishing "{title}" pushed {skills} over the proficiency line.'
+    if practiced:
+        skills = ", ".join(practiced[:4])
+        return f'"{title}" is done. That built toward {skills}.'
+    return f'"{title}" is done.'

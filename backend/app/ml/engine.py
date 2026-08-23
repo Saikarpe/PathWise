@@ -740,27 +740,27 @@ class Engine:
             return snapshot
 
         items = sorted(path.items, key=lambda i: i.order_index)
+        # Course-scoped: feeds the "X of Y courses" headline stat specifically.
         course_items = [i for i in items if i.item_type == "course"]
         done_items = [i for i in course_items if i.course_id in completed_ids]
 
+        # Item-scoped (courses, projects and assessments alike): feeds hours,
+        # overall progress and "what's next". Projects and assessments are a
+        # third to a half of a typical path — crediting only course
+        # completions here would make the progress bar unable to reach 100%
+        # even after finishing everything, and leave "do this next" pointing
+        # at a step the learner already completed.
         hours_total = float(sum(i.hours for i in items))
-        hours_done = float(sum(i.hours for i in done_items))
+        hours_done = float(sum(i.hours for i in items if i.course_id in completed_ids))
         for item in items:
-            if item.item_type != "course":
+            if item.course_id in completed_ids:
                 continue
             enrollment = enrollments.get(item.course_id or "")
             if enrollment and enrollment.status == "in_progress":
                 hours_done += item.hours * float(enrollment.progress_pct or 0.0) / 100.0
 
         progress = hours_done / hours_total if hours_total else 0.0
-        next_item = next(
-            (
-                i
-                for i in items
-                if not (i.item_type == "course" and i.course_id in completed_ids)
-            ),
-            None,
-        )
+        next_item = next((i for i in items if i.course_id not in completed_ids), None)
 
         phases: dict[int, dict] = {}
         for item in items:
@@ -777,7 +777,7 @@ class Engine:
             )
             phase["total"] += 1
             phase["hours"] += item.hours
-            if item.item_type == "course" and item.course_id in completed_ids:
+            if item.course_id in completed_ids:
                 phase["completed"] += 1
                 phase["hours_done"] += item.hours
         for phase in phases.values():

@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Chip, Drivers, Empty, ErrorNote, Loading, PageHeader } from "@/components/pf";
+import { Chip, Drivers, Empty, ErrorNote, FeedbackBar, Loading, PageHeader } from "@/components/pf";
 
 export const Route = createFileRoute("/recommendations")({
   head: () => ({
@@ -47,6 +47,11 @@ type Course = {
 type Rec = {
   course: Course;
   score?: number;
+  // The raw per-factor attribution vector — pass this back on feedback so the
+  // backend can credit/discredit the right factors even though this course
+  // isn't on the learner's path yet (it can only recover this itself from a
+  // stored PathItem, which a bare recommendation isn't).
+  factors?: Record<string, number>;
   explanation?: { headline?: string; drivers?: { factor: string; share: number }[] };
   alternatives?: { course_id: string | number; title?: string; provider?: string; hours?: number; rating?: number }[];
 };
@@ -151,11 +156,14 @@ function RecommendationsPage() {
                           (c.title ?? "Untitled course")
                         )}
                       </h2>
-                      {r.score !== undefined ? (
-                        <span className="text-sm tabular-nums text-muted-foreground">
-                          {Math.round(r.score * 100)}% match
-                        </span>
-                      ) : null}
+                      <div className="flex shrink-0 items-center gap-3">
+                        {r.score !== undefined ? (
+                          <span className="text-sm tabular-nums text-muted-foreground">
+                            {Math.round(r.score * 100)}% match
+                          </span>
+                        ) : null}
+                        <FeedbackBar courseId={cid} factors={r.factors} />
+                      </div>
                     </div>
 
                     <p className="text-xs text-muted-foreground">

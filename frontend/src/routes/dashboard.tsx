@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -25,7 +26,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Empty, ErrorNote, Loading, Meter, Notice, Section, Stat } from "@/components/pf";
+import { Empty, ErrorNote, FeedbackBar, Loading, Meter, Notice, Section, Stat } from "@/components/pf";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -98,10 +99,17 @@ function DashboardPage() {
       const courseId = q.data?.next_item?.course_id;
       if (pathId === undefined || courseId === undefined)
         throw new Error("This step has no course to track.");
-      return api(`/api/paths/${pathId}/progress`, {
+      return api<{ narrative?: string }>(`/api/paths/${pathId}/progress`, {
         method: "POST",
         body: { course_id: courseId, status: vars.status },
       });
+    },
+    // `narrative` is what the learner actually gained (skills pushed over the
+    // proficiency line) — deliberately not the ranking-model `adaptation`
+    // note, which is about what the recommender changed about itself, not
+    // what finishing this course got you.
+    onSuccess: (data) => {
+      if (data.narrative) toast.success(data.narrative);
     },
     onSettled: () => {
       setBusy(null);
@@ -144,10 +152,13 @@ function DashboardPage() {
 
               {d.next_item ? (
                 <div className="rounded-2xl border border-border bg-card p-8">
-                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                    Do this next
-                    {d.next_item.phase_name ? ` · ${d.next_item.phase_name}` : ""}
-                  </p>
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                      Do this next
+                      {d.next_item.phase_name ? ` · ${d.next_item.phase_name}` : ""}
+                    </p>
+                    <FeedbackBar courseId={d.next_item.course_id} pathId={d.path?.id} />
+                  </div>
                   <h2 className="mt-3 text-2xl font-semibold">{d.next_item.title}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {[d.next_item.item_type, d.next_item.hours ? `${d.next_item.hours}h` : null]
