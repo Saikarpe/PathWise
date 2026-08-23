@@ -1,0 +1,28 @@
+# ---- Web framework ----
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# ---- Persistence ----
+SQLAlchemy==2.0.36
+
+# ---- Auth ----
+PyJWT==2.10.1
+bcrypt==4.2.1
+# Backs pydantic's EmailStr; without it the request schemas fail to build.
+email-validator==2.3.0
+
+# ---- ML / data ----
+pandas==2.2.3
+numpy==2.2.1
+scikit-learn==1.6.0
+scipy==1.15.0
+networkx==3.4.2
+
+# ---- LLM layer (optional at runtime; falls back to local engine) ----
+httpx==0.28.1
+
+# ---- Tests ----
+pytest==8.3.4
