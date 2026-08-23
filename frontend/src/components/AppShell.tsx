@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Compass,
-  GraduationCap,
   LayoutDashboard,
   LogOut,
   MessageSquare,
@@ -11,6 +10,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { PathMark } from "@/components/PathMark";
 
 const NAV = [
   { to: "/dashboard", label: "My Learning", icon: LayoutDashboard },
@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-16 w-full max-w-[80rem] items-center gap-8 px-6">
           <Link to="/dashboard" className="flex shrink-0 items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-              <GraduationCap className="h-4.5 w-4.5" />
+              <PathMark className="h-4.5 w-4.5" />
             </span>
             <span className="font-display text-lg font-bold tracking-tight text-foreground">
               PathFinder
