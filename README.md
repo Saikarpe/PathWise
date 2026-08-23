@@ -12,12 +12,12 @@ branches and 235 tracks.
 
 | Problem statement requirement | Where it lives |
 |---|---|
-| Conversational interface | [`/chat`](frontend/src/pages/Chat.jsx) UI, [`app/api/chat.py`](backend/app/api/chat.py), [`app/ml/conversation.py`](backend/app/ml/conversation.py) |
-| Learner profiling engine | [`/profile`](frontend/src/pages/Profile.jsx), [`Onboarding`](frontend/src/pages/Onboarding.jsx), [`app/api/profile.py`](backend/app/api/profile.py) |
+| Conversational interface | [`routes/chat.tsx`](frontend/src/routes/chat.tsx), [`app/api/chat.py`](backend/app/api/chat.py), [`app/ml/conversation.py`](backend/app/ml/conversation.py) |
+| Learner profiling engine | [`routes/profile.tsx`](frontend/src/routes/profile.tsx), [`routes/onboarding.tsx`](frontend/src/routes/onboarding.tsx), [`app/api/profile.py`](backend/app/api/profile.py) |
 | Recommendation engine | [`app/ml/ranker.py`](backend/app/ml/ranker.py), [`app/api/recommendations.py`](backend/app/api/recommendations.py) |
 | Path generator (prerequisites + milestones) | [`app/ml/planner.py`](backend/app/ml/planner.py), [`app/ml/graph.py`](backend/app/ml/graph.py), [`app/api/paths.py`](backend/app/api/paths.py) |
-| AI assistant that explains recommendations | [`app/ml/explainer.py`](backend/app/ml/explainer.py), the `Why` drawer in the UI |
-| Progress / skill dashboard | [`/dashboard`](frontend/src/pages/Dashboard.jsx), [`app/api/dashboard.py`](backend/app/api/dashboard.py) |
+| AI assistant that explains recommendations | [`app/ml/explainer.py`](backend/app/ml/explainer.py), the "Why this?" panels in the UI |
+| Progress / skill dashboard | [`routes/dashboard.tsx`](frontend/src/routes/dashboard.tsx), [`app/api/dashboard.py`](backend/app/api/dashboard.py) |
 
 ---
 
@@ -101,15 +101,20 @@ learning-path-recommender/
 │   ├── probe_engine.py           scratch harness: exercises the ML engine directly
 │   ├── probe_api.py              scratch harness: exercises every HTTP endpoint
 │   └── requirements.txt
-└── frontend/                    React 18 + Vite + Tailwind
+└── frontend/                    React 19 + TanStack Start/Router + TanStack Query + Tailwind v4 + shadcn/ui
     └── src/
-        ├── pages/                Landing, Login, Register, Onboarding, Dashboard,
-        │                         Roadmap, Recommendations, Chat, Explore, CourseDetail, Profile
-        ├── components/           CourseCard, RoadmapGraph, SkillMeter, WhyDrawer, Milestones…
-        ├── api/                  axios client + one function per endpoint
-        ├── store/auth.jsx        auth context
-        └── hooks/useApi.js       fetch/action hooks
+        ├── routes/               file-based routes: index, login, register, onboarding, dashboard,
+        │                         roadmap, recommendations, chat, explore, courses.$courseId, profile
+        ├── components/           AppShell (nav shell), CourseCard, pf.tsx (shared primitives: Stat, Meter, Chip, Section…)
+        ├── lib/api.ts            fetch wrapper — bearer token, VITE_API_BASE_URL, FastAPI error shape
+        └── lib/auth.tsx          auth context + useRequireAuth guard
 ```
+
+> The UI was designed in [Lovable](https://lovable.dev) against this exact backend's
+> API contract, then hand-integrated: every route was checked field-by-field against
+> the real FastAPI response shapes (see git history for the list of fixes — mostly
+> field-name mismatches like `skills` vs `skills_taught`, and nested vs flat fields
+> like `analysis.readiness_after` and `course.title` vs a bare course id).
 
 ---
 
@@ -141,19 +146,22 @@ required to run the app):
 ```
 ANTHROPIC_API_KEY=          # optional — leave blank to run fully local
 SECRET_KEY=change-me-in-production
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-npm install
+npm install     # bun install also works if you have bun — bun.lock is included
 npm run dev
 ```
 
-Open `http://localhost:5173`. The dev server proxies `/api` to
-`http://127.0.0.1:8000`, so both must be running.
+Open `http://localhost:3000`. Unlike the old Vite SPA, this frontend calls the
+backend directly — no dev proxy — via `VITE_API_BASE_URL` (defaults to
+`http://127.0.0.1:8000`, set in `frontend/.env` if the backend runs elsewhere), so
+the backend must be running and its `CORS_ORIGINS` must include the frontend's
+origin (already the case with the defaults above).
 
 ### Try it without registering
 
@@ -175,10 +183,12 @@ All four seeded accounts share the password `demo1234`:
 ### Production build
 
 ```bash
-cd frontend && npm run build     # outputs frontend/dist
+cd frontend && npm run build
 ```
-Serve `frontend/dist` from any static host and point `CORS_ORIGINS` /
-`VITE_API_TARGET` at the deployed backend.
+This is a TanStack Start app — the build is server-rendered (`npm run build` then
+served via its own Node entry, not a static folder like the old SPA). Point
+`VITE_API_BASE_URL` at the deployed backend and add the deployed frontend's origin
+to the backend's `CORS_ORIGINS`.
 
 ---
 

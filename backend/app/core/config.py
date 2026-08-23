@@ -26,7 +26,14 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     # --- CORS ---
-    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173"
+    # 5173/4173 were the old Vite SPA's dev/preview ports; 8080 is the TanStack
+    # Start frontend's `vite dev` port (3000 is its common default elsewhere,
+    # kept too in case the port picker lands there in a different environment).
+    CORS_ORIGINS: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,"
+        "http://localhost:3000,http://127.0.0.1:3000,"
+        "http://localhost:8080,http://127.0.0.1:8080"
+    )
 
     # --- optional LLM augmentation ---
     # When ANTHROPIC_API_KEY is absent the app runs entirely on the local ML engine.
