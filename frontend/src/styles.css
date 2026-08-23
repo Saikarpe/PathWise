@@ -63,15 +63,19 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-rating: var(--rating);
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
 }
 
 
 :root {
-  --radius: 0.75rem;
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Crisper, less-rounded corners than the previous soft-SaaS look — closer
+     to the tighter radius conventional e-learning platforms (Coursera,
+     Udemy) use on cards and controls. */
+  --radius: 0.5rem;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   /* one neutral scale */
   --background: oklch(0.988 0.003 106);
@@ -81,11 +85,13 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.012 260);
 
-  /* one accent */
-  --primary: oklch(0.52 0.11 210);
+  /* Coursera-blue primary — the recognisable "learning platform" accent,
+     saturated enough to carry a brand on its own against a plain white/grey
+     canvas rather than reading as a generic SaaS tint. */
+  --primary: oklch(0.47 0.19 258);
   --primary-foreground: oklch(0.99 0.002 106);
-  --accent: oklch(0.955 0.014 210);
-  --accent-foreground: oklch(0.4 0.09 210);
+  --accent: oklch(0.94 0.03 258);
+  --accent-foreground: oklch(0.38 0.16 258);
 
   --secondary: oklch(0.962 0.004 106);
   --secondary-foreground: oklch(0.3 0.012 260);
@@ -93,29 +99,32 @@
   --muted-foreground: oklch(0.53 0.012 260);
 
   /* status only */
-  --success: oklch(0.62 0.11 155);
+  --success: oklch(0.6 0.14 155);
   --success-foreground: oklch(0.99 0.002 106);
   --warning: oklch(0.76 0.13 78);
   --warning-foreground: oklch(0.28 0.05 78);
+  /* Star-rating gold — the one extra accent both Coursera and Udemy lean on
+     for ratings, distinct from the warning/amber semantic color above. */
+  --rating: oklch(0.79 0.16 78);
 
   --destructive: oklch(0.577 0.19 27.325);
   --destructive-foreground: oklch(0.99 0.002 106);
   --border: oklch(0.915 0.004 106);
   --input: oklch(0.9 0.004 106);
-  --ring: oklch(0.52 0.11 210);
-  --chart-1: oklch(0.52 0.11 210);
-  --chart-2: oklch(0.66 0.07 210);
-  --chart-3: oklch(0.78 0.04 210);
-  --chart-4: oklch(0.62 0.11 155);
+  --ring: oklch(0.47 0.19 258);
+  --chart-1: oklch(0.47 0.19 258);
+  --chart-2: oklch(0.62 0.13 258);
+  --chart-3: oklch(0.76 0.07 258);
+  --chart-4: oklch(0.6 0.14 155);
   --chart-5: oklch(0.76 0.13 78);
   --sidebar: oklch(0.988 0.003 106);
   --sidebar-foreground: oklch(0.22 0.012 260);
-  --sidebar-primary: oklch(0.52 0.11 210);
+  --sidebar-primary: oklch(0.47 0.19 258);
   --sidebar-primary-foreground: oklch(0.99 0.002 106);
-  --sidebar-accent: oklch(0.955 0.014 210);
-  --sidebar-accent-foreground: oklch(0.4 0.09 210);
+  --sidebar-accent: oklch(0.94 0.03 258);
+  --sidebar-accent-foreground: oklch(0.38 0.16 258);
   --sidebar-border: oklch(0.915 0.004 106);
-  --sidebar-ring: oklch(0.52 0.11 210);
+  --sidebar-ring: oklch(0.47 0.19 258);
 }
 
 
@@ -126,8 +135,8 @@
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
+  --primary: oklch(0.7 0.15 258);
+  --primary-foreground: oklch(0.15 0.03 258);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.279 0.041 260.031);
@@ -138,20 +147,21 @@
   --destructive-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --ring: oklch(0.7 0.15 258);
+  --chart-1: oklch(0.7 0.15 258);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+  --rating: oklch(0.79 0.16 78);
   --sidebar: oklch(0.208 0.042 265.755);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.7 0.15 258);
+  --sidebar-primary-foreground: oklch(0.15 0.03 258);
   --sidebar-accent: oklch(0.279 0.041 260.031);
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar-ring: oklch(0.7 0.15 258);
 }
 
 @layer base {
@@ -182,9 +192,9 @@
 @utility page {
   margin-inline: auto;
   width: 100%;
-  max-width: 72rem;
+  max-width: 80rem;
   padding-inline: 1.5rem;
-  padding-block: 3rem;
+  padding-block: 2.5rem;
 }
 
 @utility surface {
