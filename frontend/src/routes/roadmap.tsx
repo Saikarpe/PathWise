@@ -186,7 +186,7 @@ function RoadmapPage() {
                         <button
                           key={n.id}
                           onClick={() => setOpen(n)}
-                          className={`w-full rounded-xl border bg-card px-5 py-4 text-left transition-colors hover:border-primary/50 ${
+                          className={`w-full rounded-xl border bg-card px-5 py-4 text-left transition-colors hover:border-primary/50 hover:bg-accent/30 ${
                             prereqTargets.has(n.id) ? "border-border" : "border-dashed border-border"
                           }`}
                         >

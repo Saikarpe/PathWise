@@ -151,7 +151,7 @@ function LoginPage() {
               type="button"
               disabled={d.available === false || busy === d.email}
               onClick={() => demoLogin(d.email)}
-              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/50 disabled:opacity-50"
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/30 disabled:opacity-50 disabled:hover:bg-card disabled:hover:border-border"
             >
               <p className="text-sm font-medium">{d.name || d.email}</p>
               {d.headline ? (
