@@ -126,7 +126,13 @@ function ExplorePage() {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {(results ?? []).map((c, i) => (
-            <CourseCard key={`${c.course_id ?? c.id ?? i}`} course={c} />
+            <div
+              key={`${c.course_id ?? c.id ?? i}`}
+              className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both duration-500"
+              style={{ animationDelay: `${Math.min(i, 11) * 40}ms` }}
+            >
+              <CourseCard course={c} />
+            </div>
           ))}
         </div>
       </div>

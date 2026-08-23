@@ -27,6 +27,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Empty, ErrorNote, FeedbackBar, Loading, Meter, Notice, Section, Stat } from "@/components/pf";
+import { SkillsDrawer } from "@/components/SkillsDrawer";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -89,6 +90,7 @@ function DashboardPage() {
   const { ready, authed } = useRequireAuth();
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [skillsOpen, setSkillsOpen] = useState(false);
 
   const q = useQuery({
     queryKey: ["dashboard"],
@@ -123,6 +125,16 @@ function DashboardPage() {
 
   const d = q.data;
   const skills = (d?.skill_levels ?? []).slice(0, 10);
+
+  // skills_proficient/skills_in_progress are just name lists — join back to
+  // skill_levels for the proficiency number the drawer's meters need.
+  const levelBySkill = new Map((d?.skill_levels ?? []).map((s) => [s.skill, s]));
+  const proficientRows = (d?.skills_proficient ?? []).map(
+    (name) => levelBySkill.get(name) ?? { skill: name, proficiency: 1 },
+  );
+  const inProgressRows = (d?.skills_in_progress ?? []).map(
+    (name) => levelBySkill.get(name) ?? { skill: name, proficiency: 0.3 },
+  );
 
   return (
     <AppShell>
@@ -235,6 +247,7 @@ function DashboardPage() {
                 label="Skills proficient"
                 value={d.skills_proficient?.length ?? "—"}
                 sub={d.skills_in_progress?.length ? `${d.skills_in_progress.length} more in progress` : undefined}
+                onClick={() => setSkillsOpen(true)}
               />
               <Stat
                 label="Readiness"
@@ -357,6 +370,13 @@ function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      <SkillsDrawer
+        open={skillsOpen}
+        onOpenChange={setSkillsOpen}
+        proficient={proficientRows}
+        inProgress={inProgressRows}
+      />
     </AppShell>
   );
 }

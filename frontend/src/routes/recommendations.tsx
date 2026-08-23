@@ -136,7 +136,11 @@ function RecommendationsPage() {
             const cid = c.course_id ?? c.id;
             const skills = c.skills ?? [];
             return (
-              <article key={`${cid}-${i}`} className="rounded-2xl border border-border bg-card p-6">
+              <article
+                key={`${cid}-${i}`}
+                className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both rounded-2xl border border-border bg-card p-6 duration-500"
+                style={{ animationDelay: `${Math.min(i, 11) * 50}ms` }}
+              >
                 <div className="flex gap-5">
                   <span className="mt-0.5 font-display text-sm text-muted-foreground tabular-nums">
                     {String(i + 1).padStart(2, "0")}
