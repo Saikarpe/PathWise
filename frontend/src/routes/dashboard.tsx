@@ -151,7 +151,7 @@ function DashboardPage() {
               </div>
 
               {d.next_item ? (
-                <div className="rounded-2xl border border-border bg-card p-8">
+                <div className="rounded-lg border border-border border-l-4 border-l-primary bg-card p-8 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
                     <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
                       Do this next

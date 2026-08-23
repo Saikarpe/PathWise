@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -46,37 +47,44 @@ const SECTIONS = [
 function Landing() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
-        <span className="font-display text-sm font-semibold">PathFinder</span>
-        <Link to="/login">
-          <Button variant="ghost" size="sm">
-            Sign in
-          </Button>
-        </Link>
-      </header>
-
-      <section className="mx-auto w-full max-w-3xl px-6 pb-24 pt-24 text-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          Personalised learning paths
-        </p>
-        <h1 className="mt-6 text-balance text-5xl font-semibold leading-[1.05] sm:text-6xl">
-          Describe the job you want. Get the path that gets you there.
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground">
-          PathFinder reads your goal, finds the gap between where you are and where you want to be,
-          and lays out the courses, projects and checkpoints in the order that actually works.
-        </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <Link to="/register">
-            <Button size="lg">Build my path</Button>
-          </Link>
+      <div className="border-b border-border bg-gradient-to-b from-accent/60 to-background">
+        <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
+          <span className="flex items-center gap-2">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground">
+              <GraduationCap className="h-4 w-4" />
+            </span>
+            <span className="font-display text-base font-bold tracking-tight">PathFinder</span>
+          </span>
           <Link to="/login">
-            <Button size="lg" variant="outline">
-              Try a demo account
+            <Button variant="ghost" size="sm">
+              Sign in
             </Button>
           </Link>
-        </div>
-      </section>
+        </header>
+
+        <section className="mx-auto w-full max-w-3xl px-6 pb-24 pt-16 text-center">
+          <p className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent-foreground">
+            Personalised learning paths
+          </p>
+          <h1 className="mt-6 text-balance text-5xl font-semibold leading-[1.05] sm:text-6xl">
+            Describe the job you want. Get the path that gets you there.
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground">
+            PathFinder reads your goal, finds the gap between where you are and where you want to be,
+            and lays out the courses, projects and checkpoints in the order that actually works.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <Link to="/register">
+              <Button size="lg">Build my path</Button>
+            </Link>
+            <Link to="/login">
+              <Button size="lg" variant="outline">
+                Try a demo account
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </div>
 
       <section className="mx-auto w-full max-w-3xl space-y-px px-6 pb-32">
         {SECTIONS.map((s) => (
