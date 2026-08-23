@@ -59,8 +59,12 @@ type Dashboard = {
   total_courses?: number;
   hours_completed?: number;
   total_hours?: number;
-  skills_proficient?: number;
-  skills_in_progress?: number;
+  // Both are lists of skill names, not counts — rendering one directly as a
+  // Stat's value used to concatenate every name into one unspaced run of
+  // text ("javapythonalgorithms...") since React joins array children with
+  // nothing between them.
+  skills_proficient?: string[];
+  skills_in_progress?: string[];
   readiness_before?: number;
   readiness_after?: number;
   weekly_hours?: number;
@@ -229,12 +233,8 @@ function DashboardPage() {
               />
               <Stat
                 label="Skills proficient"
-                value={d.skills_proficient ?? "—"}
-                sub={
-                  d.skills_in_progress !== undefined
-                    ? `${d.skills_in_progress} in progress`
-                    : undefined
-                }
+                value={d.skills_proficient?.length ?? "—"}
+                sub={d.skills_in_progress?.length ? `${d.skills_in_progress.length} more in progress` : undefined}
               />
               <Stat
                 label="Readiness"
