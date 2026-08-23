@@ -89,10 +89,14 @@ function RecommendationsPage() {
         />
 
         <div className="space-y-5 rounded-2xl border border-border bg-card p-6">
+          <p className="text-sm text-muted-foreground">
+            These control how the list below is built — none of it changes your saved profile.
+          </p>
+
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                How many
+                Results to show
               </span>
               {LIMITS.map((l) => (
                 <Chip key={l} active={limit === l} onClick={() => setLimit(l)}>
@@ -107,20 +111,33 @@ function RecommendationsPage() {
                 onCheckedChange={setExcludePlanned}
               />
               <Label htmlFor="exclude" className="text-sm text-muted-foreground">
-                Hide what’s already on my path
+                Hide courses already on my path
               </Label>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Input
-              value={goalText}
-              onChange={(e) => setGoalText(e.target.value)}
-              placeholder="Optional: override your goal for this search"
-              className="max-w-md flex-1"
-            />
-            <Button onClick={() => run.mutate()} disabled={!started || run.isPending}>
-              {run.isPending ? "Ranking…" : "Get recommendations"}
-            </Button>
+
+          <div>
+            <Label htmlFor="goal-override" className="text-sm font-medium text-foreground">
+              Rank against a different goal
+              <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <p className="mb-2 mt-0.5 text-xs text-muted-foreground">
+              By default this ranks against the goal saved in your profile. Type a different one
+              here to preview what it would recommend instead — this is a one-off search, not a
+              change to your path or profile.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Input
+                id="goal-override"
+                value={goalText}
+                onChange={(e) => setGoalText(e.target.value)}
+                placeholder="e.g. I want to move into cloud engineering"
+                className="max-w-md flex-1"
+              />
+              <Button onClick={() => run.mutate()} disabled={!started || run.isPending}>
+                {run.isPending ? "Ranking…" : "Get recommendations"}
+              </Button>
+            </div>
           </div>
         </div>
 
