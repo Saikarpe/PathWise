@@ -93,7 +93,7 @@ function SkillDetailRow({ row }: { row: SkillRow }) {
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-secondary/50"
+        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-accent/30"
       >
         <div className="min-w-0 flex-1">
           <Meter

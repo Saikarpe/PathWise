@@ -102,7 +102,7 @@ export function CourseCard({ course }: { course: CatalogCourse }) {
   );
 
   return (
-    <article className="group rounded-lg border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md">
+    <article className="group rounded-lg border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-accent/30 hover:shadow-md">
       {id !== undefined ? (
         <Link to="/courses/$courseId" params={{ courseId: String(id) }} className="block">
           {body}

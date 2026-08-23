@@ -138,7 +138,7 @@ function RecommendationsPage() {
             return (
               <article
                 key={`${cid}-${i}`}
-                className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both rounded-2xl border border-border bg-card p-6 duration-500"
+                className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-accent/20 hover:shadow-md [animation-duration:500ms]"
                 style={{ animationDelay: `${Math.min(i, 11) * 50}ms` }}
               >
                 <div className="flex gap-5">
