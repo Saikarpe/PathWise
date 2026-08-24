@@ -10,12 +10,12 @@ import { ErrorNote } from "@/components/pf";
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Create your account — PathFinder" },
+      { title: "Create your account — PathWise" },
       {
         name: "description",
-        content: "Create a PathFinder account and turn your goal into a learning path.",
+        content: "Create a PathWise account and turn your goal into a learning path.",
       },
-      { property: "og:title", content: "Create your account — PathFinder" },
+      { property: "og:title", content: "Create your account — PathWise" },
       {
         property: "og:description",
         content: "Start with a goal in plain words; get an explainable learning path.",
@@ -61,7 +61,7 @@ function RegisterPage() {
   return (
     <div className="mx-auto w-full max-w-md px-6 py-24">
       <Link to="/" className="font-display text-sm font-semibold">
-        PathFinder
+        PathWise
       </Link>
       <h1 className="mt-10 text-3xl font-semibold">Create your account</h1>
       <p className="mt-2 text-sm text-muted-foreground">

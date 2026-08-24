@@ -12,9 +12,9 @@ import { Chip, ErrorNote, Loading, PageHeader, Section } from "@/components/pf";
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
     meta: [
-      { title: "Course detail — PathFinder" },
+      { title: "Course detail — PathWise" },
       { name: "description", content: "Prerequisites, skills taught and what this course unlocks." },
-      { property: "og:title", content: "Course detail — PathFinder" },
+      { property: "og:title", content: "Course detail — PathWise" },
       { property: "og:description", content: "See where a course sits in your learning ladder." },
     ],
   }),

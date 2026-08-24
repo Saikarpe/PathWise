@@ -11,9 +11,9 @@ import { Chip, ErrorNote, Loading } from "@/components/pf";
 export const Route = createFileRoute("/chat")({
   head: () => ({
     meta: [
-      { title: "Assistant — PathFinder" },
+      { title: "Assistant — PathWise" },
       { name: "description", content: "Ask about your path, your gaps and what to study next." },
-      { property: "og:title", content: "Assistant — PathFinder" },
+      { property: "og:title", content: "Assistant — PathWise" },
       { property: "og:description", content: "A learning assistant that knows your active path." },
     ],
   }),

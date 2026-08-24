@@ -19,12 +19,12 @@ import { Chip, Drivers, Empty, ErrorNote, FeedbackBar, Loading, PageHeader } fro
 export const Route = createFileRoute("/recommendations")({
   head: () => ({
     meta: [
-      { title: "Recommendations — PathFinder" },
+      { title: "Recommendations — PathWise" },
       {
         name: "description",
         content: "Ranked course recommendations, each with the drivers behind its score.",
       },
-      { property: "og:title", content: "Recommendations — PathFinder" },
+      { property: "og:title", content: "Recommendations — PathWise" },
       { property: "og:description", content: "Why each course is recommended, in plain numbers." },
     ],
   }),

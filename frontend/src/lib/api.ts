@@ -1,5 +1,31 @@
+import { toast } from "sonner";
+
 export const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) || "http://127.0.0.1:8000";
+
+// A free-tier backend (Render, notably) spins down after ~15 minutes idle and
+// takes up to a couple of minutes to wake back up on the next request. Without
+// this, that first request just sits there — a learner watching a spinner with
+// no explanation reasonably concludes the app is broken and leaves. One toast,
+// de-duplicated across concurrent requests, is enough to make a slow-but-alive
+// backend read as "starting up" instead of "down".
+const SLOW_REQUEST_MS = 4000;
+let slowToastActive = false;
+
+function warnIfSlow(): () => void {
+  const timer = setTimeout(() => {
+    if (slowToastActive) return;
+    slowToastActive = true;
+    toast.message("Waking up the server…", {
+      description: "The backend was asleep after a period of inactivity — this can take up to a couple of minutes on the first request. It won't need this again for a while.",
+      duration: 15000,
+    });
+  }, SLOW_REQUEST_MS);
+  return () => {
+    clearTimeout(timer);
+    slowToastActive = false;
+  };
+}
 
 const TOKEN_KEY = "pf_token";
 const USER_KEY = "pf_user";
@@ -84,10 +110,16 @@ export async function api<T = unknown>(path: string, opts: Options = {}): Promis
   if (body !== undefined) init.body = JSON.stringify(body);
 
   let res: Response;
+  const cancelSlowWarning = warnIfSlow();
   try {
     res = await fetch(url, init);
   } catch {
-    throw new ApiError(0, "Could not reach the API. Is the server running?");
+    throw new ApiError(
+      0,
+      "Couldn't complete that request. If the server just went from idle to active, wait a moment and try again — otherwise it may genuinely be unreachable.",
+    );
+  } finally {
+    cancelSlowWarning();
   }
 
   if (res.status === 401) {

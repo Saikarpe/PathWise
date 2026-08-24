@@ -33,9 +33,9 @@ import {
 export const Route = createFileRoute("/roadmap")({
   head: () => ({
     meta: [
-      { title: "Roadmap — PathFinder" },
+      { title: "Roadmap — PathWise" },
       { name: "description", content: "Your learning path laid out phase by phase, with prerequisites." },
-      { property: "og:title", content: "Roadmap — PathFinder" },
+      { property: "og:title", content: "Roadmap — PathWise" },
       { property: "og:description", content: "Every step of your path, in order, with the reasoning behind it." },
     ],
   }),

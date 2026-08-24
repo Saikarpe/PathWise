@@ -19,12 +19,12 @@ import { Chip, ErrorNote, Loading, Meter, Notice, PaceCalibration, Section, Stat
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your path — PathFinder" },
+      { title: "Set up your path — PathWise" },
       {
         name: "description",
-        content: "Tell PathFinder your goal and preview the learning path it builds for you.",
+        content: "Tell PathWise your goal and preview the learning path it builds for you.",
       },
-      { property: "og:title", content: "Set up your path — PathFinder" },
+      { property: "og:title", content: "Set up your path — PathWise" },
       { property: "og:description", content: "Four short steps from a sentence to a full path." },
     ],
   }),

@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <PathMark className="h-4.5 w-4.5" />
             </span>
             <span className="font-display text-lg font-bold tracking-tight text-foreground">
-              PathFinder
+              PathWise
             </span>
           </Link>
 

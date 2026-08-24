@@ -1,4 +1,4 @@
-# PathFinder AI — Personalised Learning Path Recommender
+# PathWise AI — Personalised Learning Path Recommender
 
 An AI-powered assistant that turns a plain-English goal ("I want to become a machine
 learning engineer, I know Python") into a prerequisite-ordered learning roadmap:

@@ -80,11 +80,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PathFinder — Personalised learning paths" },
+      { title: "PathWise — Personalised learning paths" },
       {
         name: "description",
         content:
-          "PathFinder turns your goal into an explainable, step-by-step learning path built from a real course catalogue.",
+          "PathWise turns your goal into an explainable, step-by-step learning path built from a real course catalogue.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

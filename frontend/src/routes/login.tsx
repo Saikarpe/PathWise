@@ -11,9 +11,9 @@ import { ErrorNote, Loading } from "@/components/pf";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — PathFinder" },
-      { name: "description", content: "Sign in to PathFinder to pick up your learning path." },
-      { property: "og:title", content: "Sign in — PathFinder" },
+      { title: "Sign in — PathWise" },
+      { name: "description", content: "Sign in to PathWise to pick up your learning path." },
+      { property: "og:title", content: "Sign in — PathWise" },
       { property: "og:description", content: "Sign in to continue your personalised path." },
     ],
   }),
@@ -97,7 +97,7 @@ function LoginPage() {
   return (
     <div className="mx-auto w-full max-w-md px-6 py-24">
       <Link to="/" className="font-display text-sm font-semibold">
-        PathFinder
+        PathWise
       </Link>
       <h1 className="mt-10 text-3xl font-semibold">Welcome back</h1>
       <p className="mt-2 text-sm text-muted-foreground">Sign in to continue your path.</p>
