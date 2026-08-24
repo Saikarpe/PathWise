@@ -19,10 +19,10 @@ import { Empty, ErrorNote, Loading, PageHeader } from "@/components/pf";
 export const Route = createFileRoute("/explore")({
   head: () => ({
     meta: [
-      { title: "Explore courses — PathFinder" },
+      { title: "Explore courses — PathWise" },
       { name: "description", content: "Browse and search the full course catalogue by track, provider and level." },
-      { property: "og:title", content: "Explore courses — PathFinder" },
-      { property: "og:description", content: "Search the catalogue behind every PathFinder recommendation." },
+      { property: "og:title", content: "Explore courses — PathWise" },
+      { property: "og:description", content: "Search the catalogue behind every PathWise recommendation." },
     ],
   }),
   component: ExplorePage,

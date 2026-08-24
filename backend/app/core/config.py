@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         env_file=str(BACKEND_DIR / ".env"), env_file_encoding="utf-8", extra="ignore"
     )
 
-    APP_NAME: str = "PathFinder AI"
+    APP_NAME: str = "PathWise AI"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 

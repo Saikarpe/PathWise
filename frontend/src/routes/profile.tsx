@@ -22,9 +22,9 @@ import type { CatalogCourse } from "@/components/CourseCard";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "Profile — PathFinder" },
+      { title: "Profile — PathWise" },
       { name: "description", content: "Your goal, time budget, self-rated skills and course history." },
-      { property: "og:title", content: "Profile — PathFinder" },
+      { property: "og:title", content: "Profile — PathWise" },
       { property: "og:description", content: "Keep your learning profile accurate so the path stays accurate." },
     ],
   }),

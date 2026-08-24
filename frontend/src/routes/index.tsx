@@ -5,13 +5,13 @@ import { PathMark } from "@/components/PathMark";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PathFinder — Your goal, turned into a learning path" },
+      { title: "PathWise — Your goal, turned into a learning path" },
       {
         name: "description",
         content:
-          "Describe what you want to be able to do. PathFinder builds an explainable, week-by-week learning path from a real course catalogue.",
+          "Describe what you want to be able to do. PathWise builds an explainable, week-by-week learning path from a real course catalogue.",
       },
-      { property: "og:title", content: "PathFinder — Your goal, turned into a learning path" },
+      { property: "og:title", content: "PathWise — Your goal, turned into a learning path" },
       {
         property: "og:description",
         content: "An explainable, personalised learning path recommender for ambitious learners.",
@@ -53,7 +53,7 @@ function Landing() {
             <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground">
               <PathMark className="h-4 w-4" />
             </span>
-            <span className="font-display text-base font-bold tracking-tight">PathFinder</span>
+            <span className="font-display text-base font-bold tracking-tight">PathWise</span>
           </span>
           <Link to="/login">
             <Button variant="ghost" size="sm">
@@ -70,7 +70,7 @@ function Landing() {
             Describe the job you want. Get the path that gets you there.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground">
-            PathFinder reads your goal, finds the gap between where you are and where you want to be,
+            PathWise reads your goal, finds the gap between where you are and where you want to be,
             and lays out the courses, projects and checkpoints in the order that actually works.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -102,7 +102,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        PathFinder
+        PathWise
       </footer>
     </div>
   );

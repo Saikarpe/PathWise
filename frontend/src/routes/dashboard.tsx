@@ -32,9 +32,9 @@ import { SkillsDrawer } from "@/components/SkillsDrawer";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — PathFinder" },
+      { title: "Dashboard — PathWise" },
       { name: "description", content: "Your next step, your progress and your readiness." },
-      { property: "og:title", content: "Dashboard — PathFinder" },
+      { property: "og:title", content: "Dashboard — PathWise" },
       { property: "og:description", content: "See exactly what to do next on your learning path." },
     ],
   }),

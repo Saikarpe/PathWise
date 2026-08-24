@@ -40,7 +40,7 @@ _API_VERSION = "2023-06-01"
 
 #: Shared framing. The prohibitions are the important part: they are what keeps
 #: the model from inventing courses that do not exist in the catalogue.
-SYSTEM_PROMPT = """You are the learning mentor inside PathFinder AI, a personalised \
+SYSTEM_PROMPT = """You are the learning mentor inside PathWise AI, a personalised \
 learning-path recommender for engineering learners.
 
 A local recommendation engine has already done all the reasoning: it parsed the \

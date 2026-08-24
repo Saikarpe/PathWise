@@ -1,1 +1,1 @@
-"""PathFinder AI backend package."""
+"""PathWise AI backend package."""
