@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     # /api/auth/demo-users), so auto-creating them is safe; flip off for a
     # deployment that shouldn't have them at all.
     AUTO_SEED_DEMO: bool = True
+    # Cache the fitted TF-IDF/LSA space, prerequisite graph and competency
+    # model to disk so a cold start reloads them instead of refitting. See
+    # app/ml/cache.py — invalidated automatically by CSV or config changes.
+    ML_CACHE_ENABLED: bool = True
 
     # --- auth ---
     SECRET_KEY: str = "dev-secret-change-me-in-production"
