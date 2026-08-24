@@ -32,6 +32,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.ml import cache
 from app.ml.catalog import Catalog, load_catalog
 from app.ml.explainer import Explainer
 from app.ml.graph import PrerequisiteGraph, build_prerequisite_graph
@@ -113,6 +114,10 @@ class Engine:
         self.planner: PathPlanner | None = None
         self.explainer: Explainer | None = None
         self.warmup_seconds: float = 0.0
+        #: Whether the last warm() served artifacts from the disk cache.
+        #: Surfaced in stats() so a slow cold start can be diagnosed as "cache
+        #: missed" rather than guessed at.
+        self.cache_hit: bool = False
         self._ready = False
 
     # ------------------------------------------------------------------ #
@@ -122,10 +127,24 @@ class Engine:
             return
         started = time.perf_counter()
 
-        self.catalog = load_catalog(settings.COURSES_CSV)
-        self.space = build_semantic_space(self.catalog)
-        self.graph = build_prerequisite_graph(self.catalog)
-        self.competency = build_competency_model(self.catalog)
+        # These four are pure functions of the CSV plus two hyperparameters, so
+        # a valid cache is exactly equivalent to rebuilding — and on a small
+        # shared-CPU host the rebuild is the difference between a cold start
+        # measured in seconds and one measured in minutes. `cache.load()`
+        # returns None on any problem (missing, stale, corrupt), so the
+        # build-from-source path below stays the guaranteed fallback.
+        cached = cache.load() if settings.ML_CACHE_ENABLED else None
+        self.cache_hit = cached is not None
+        if cached is not None:
+            self.catalog, self.space, self.graph, self.competency = cached
+        else:
+            self.catalog = load_catalog(settings.COURSES_CSV)
+            self.space = build_semantic_space(self.catalog)
+            self.graph = build_prerequisite_graph(self.catalog)
+            self.competency = build_competency_model(self.catalog)
+            if settings.ML_CACHE_ENABLED:
+                cache.save(self.catalog, self.space, self.graph, self.competency)
+
         self.parser = IntentParser(self.catalog, self.space)
         self.ranker = Ranker(self.catalog, self.space, self.graph)
         self.planner = PathPlanner(
@@ -161,6 +180,7 @@ class Engine:
         return {
             "ready": True,
             "warmup_seconds": round(self.warmup_seconds, 2),
+            "cache_hit": self.cache_hit,
             "courses": self.catalog.size,
             "tracks": len(self.catalog.tracks),
             "branches": len(self.catalog.branches),

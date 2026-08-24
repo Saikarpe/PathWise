@@ -10,6 +10,20 @@ statement. Every one of the six required capabilities is implemented and wired
 end-to-end against a real catalogue of **2,400 engineering courses** across 12
 branches and 235 tracks.
 
+## Try it now
+
+| | |
+|---|---|
+| **Live app** | **https://path-wise-two.vercel.app** |
+| **API** | https://pathfinder-api-sq45.onrender.com ([`/docs`](https://pathfinder-api-sq45.onrender.com/docs) · [`/api/health`](https://pathfinder-api-sq45.onrender.com/api/health)) |
+
+Sign in with **“Try a demo account”** — four seeded learners, password `demo1234`,
+each exercising a different part of the engine. Or register and describe your own goal.
+
+> **First request may take 1–3 minutes.** The API is on a free tier that sleeps after
+> ~15 minutes idle; the first call wakes it. The UI shows a “waking up the server”
+> notice while this happens. Subsequent requests are fast (see benchmarks below).
+
 | Problem statement requirement | Where it lives |
 |---|---|
 | Conversational interface | [`routes/chat.tsx`](frontend/src/routes/chat.tsx), [`app/api/chat.py`](backend/app/api/chat.py), [`app/ml/conversation.py`](backend/app/ml/conversation.py) |
@@ -82,6 +96,25 @@ explainer  (headline + detail + drivers, local templates by default,
   already-decided output; disabled entirely with no `ANTHROPIC_API_KEY`, and the
   app is fully functional either way.
 
+#### What is *learned* vs *engineered*
+
+Stated plainly, because the distinction matters when judging the AI/ML work:
+
+| Component | Nature |
+|---|---|
+| Semantic space (TF-IDF + Truncated SVD) | **Unsupervised ML** — fitted on the corpus. The only `scikit-learn` model in the system. |
+| Per-learner ranking weights | **Online learning** — a signed, magnitude-scaled credit-assignment rule updated from real feedback. Adaptive, but a hand-derived update rule rather than gradient descent on a loss. |
+| Intent parser | **Hybrid** — 3 deterministic layers (lexical, alias ontology, fuzzy) with the LSA space as the semantic fallback. |
+| Skill-gap / competency model | **Engineered** — saturating tier-scaled arithmetic over the skill matrix. |
+| Path planner | **Classical algorithms** — topological sort over a prerequisite DAG, plus phase segmentation. |
+| Explanations | **Derived** — assembled from the ranker's own factor contributions, not generated prose. |
+
+The deliberate choice throughout was **explainability over model complexity**: every
+number a learner sees can be traced to the arithmetic that produced it, which is what
+makes the "why was this recommended?" feature honest rather than decorative. A deeper
+model (neural re-ranker, collaborative filtering) would need interaction data this
+system doesn't have — see the evaluation caveats in §4.
+
 ---
 
 ## 2. Project structure
@@ -130,15 +163,25 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate    |    macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 
-# create tables and seed 4 demo learners (idempotent; add --reset to wipe first)
-python -m app.seed
+python -m app.ml.build_cache   # optional: pre-fit ML artifacts (7s once, ~0.1s per boot after)
 
 uvicorn app.main:app --reload --port 8000
 ```
 
-The API is now at `http://127.0.0.1:8000` (interactive docs at `/docs`). First
-startup takes a few seconds — the TF-IDF/SVD semantic space and the prerequisite
-graph are built once, in memory, from the CSV.
+The API is now at `http://127.0.0.1:8000` (interactive docs at `/docs`).
+
+Demo accounts seed themselves on first startup, so no separate seed step is needed.
+(`python -m app.seed --reset` still exists to rebuild them from scratch.)
+
+**On startup cost.** The TF-IDF/SVD space, prerequisite graph and competency model
+are pure functions of the course CSV, so they're cached to disk and reloaded rather
+than refitted — **7.0s → 0.11s** per boot, measured. The cache is keyed on the CSV's
+content hash plus the hyperparameters and library versions, so it invalidates itself
+when any of those change, and *any* failure (missing, stale, corrupt) silently falls
+back to rebuilding — it's an optimisation, never a dependency. Run
+`python -m app.ml.build_cache` in your **build** step when deploying: hosts without a
+persistent disk discard anything written at runtime, so building it into the image is
+what makes cold starts fast.
 
 Optional `.env` in `backend/` (all settings have sane defaults — nothing here is
 required to run the app):
@@ -180,27 +223,101 @@ All four seeded accounts share the password `demo1234`:
 | `rohan@demo.dev` | Mechanical → Robotics; cross-branch semantic bridging |
 | `priya@demo.dev` | Deep in-branch specialisation, mid-path progress — dashboard has real data |
 
-### Production build
+### Deploying
+
+The live instance runs the backend on Render and the frontend on Vercel.
+
+**Backend** (root directory `learning-path-recommender/backend`):
+
+| Setting | Value |
+|---|---|
+| Build command | `pip install -r requirements.txt && python -m app.ml.build_cache` |
+| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Env | `SECRET_KEY` (any long random string), `CORS_ORIGINS` (the frontend's exact origin) |
+
+Python version is pinned by `backend/.python-version` (3.11) — the default on some
+hosts is 3.14, which has no prebuilt SciPy wheel and fails the build trying to
+compile from source without a Fortran toolchain.
+
+**Frontend** (root directory `learning-path-recommender/frontend`):
 
 ```bash
-cd frontend && npm run build
+npm run build   # TanStack Start; nitro preset is pinned to Vercel in vite.config.ts
 ```
-This is a TanStack Start app — the build is server-rendered (`npm run build` then
-served via its own Node entry, not a static folder like the old SPA). Point
-`VITE_API_BASE_URL` at the deployed backend and add the deployed frontend's origin
-to the backend's `CORS_ORIGINS`.
+Set `VITE_API_BASE_URL` to the deployed backend URL. Vite bakes env vars in at
+*build* time, so changing it requires a redeploy, not just a restart.
+
+> `CORS_ORIGINS` is an exact-origin allowlist. A frontend deployed to a new URL
+> won't be able to reach the API until that origin is added.
 
 ---
 
 ## 4. Verifying it works
 
-There's no mocked data path — both scratch harnesses run against the real engine
-and a real (in-memory / seeded) database:
+### Test suite
+
+34 tests, no mocks — they run against the real ML engine and a real (in-memory)
+database, so they exercise the same code paths as production:
+
+```bash
+cd backend && pytest
+```
+
+They assert the *invariants the product claims* rather than pinning today's exact
+output (a test that froze one specific recommendation would break on any tuning
+change without indicating a real regression). The ones that matter most:
+
+- prerequisites always precede their dependents in a generated path
+- a completed course is never recommended again
+- every score decomposes into factor contributions summing to 1.0
+- fewer weekly hours must produce a longer timeline
+- feedback measurably moves the learner model, and weights stay normalised
+- **one learner cannot read another's path** — the boundary where a bug is a data leak
+
+### Recommender evaluation
+
+```bash
+cd backend && python -m app.ml.evaluate          # add --json report.json to save
+```
+
+Sweeps 20 goals across every branch and reports structural and behavioural metrics.
+Current results:
+
+| Metric | Value | |
+|---|---|---|
+| `prerequisite_ordering_valid` | **1.00** | 92/92 in-plan prerequisite edges correctly ordered |
+| `goal_plannable_rate` | **1.00** | 20/20 sweep goals resolved to a plannable target |
+| `intent_resolution_top3` | **1.00** | 60/60 catalogue tracks recovered from a natural phrasing |
+| `recommendation_relevance` | **1.00** | 186/186 were in-track or closed an open skill gap |
+| `recommendation_track_precision` | 0.55 | strictly in-track (descriptive — see below) |
+| `mean_readiness_gain` | **+0.88** | projected skill-gap closure per plan |
+| `catalogue_coverage` | 0.09 | 223/2400 distinct courses surfaced across 20 goals |
+| `latency_recommend_p95` | 123 ms | median 98 ms |
+| `latency_plan_p95` | 72 ms | median 40 ms |
+
+Two honest caveats, stated because they change how the numbers should be read:
+
+1. **There is no held-out interaction data**, because there is no population of real
+   learners. That rules out precision@k against observed clicks, NDCG against
+   relevance judgements, and collaborative-filtering error — inventing that data
+   would make the numbers meaningless. So these are structural invariants,
+   behavioural properties, and accuracy against labels *derived from the
+   catalogue's own taxonomy*.
+2. **`recommendation_track_precision` is deliberately not optimised.** For an
+   "ML engineer" goal, the off-track results are NLP, Computer Vision, Cloud and
+   DevOps — genuinely relevant, just outside the two literally-resolved tracks.
+   Driving this to 1.0 would mean never recommending an adjacent or gap-filling
+   course, making the recommender worse. It is reported for transparency;
+   `recommendation_relevance` is the metric with a target.
+
+### Scratch harnesses
+
+Kept for interactive inspection — they print full payloads rather than asserting:
 
 ```bash
 cd backend
-PYTHONPATH=. python probe_engine.py   # warms the engine, runs a multi-turn chat, prints the feedback loop
-PYTHONPATH=. python probe_api.py      # exercises every REST endpoint end-to-end, asserts expected status codes
+PYTHONPATH=. python probe_engine.py   # multi-turn chat + feedback loop, printed
+PYTHONPATH=. python probe_api.py      # every REST endpoint, with response shapes
 ```
 
 ---
@@ -230,3 +347,9 @@ PYTHONPATH=. python probe_api.py      # exercises every REST endpoint end-to-end
 - No production auth hardening (rate limiting, refresh tokens) — `SECRET_KEY`
   and JWT expiry are dev defaults; rotate `SECRET_KEY` before any real
   deployment.
+- The deployed backend is on a free tier with **no persistent disk**: the SQLite
+  database is discarded when the instance recycles, so accounts registered on the
+  live demo are not durable. Demo learners re-seed themselves automatically on
+  boot, which is why they always work. A real deployment wants a managed Postgres.
+- **Cold starts on the live demo take 1–3 minutes** (free-tier spin-up). The ML
+  cache removed the refit cost from that, but not the host's own wake time.

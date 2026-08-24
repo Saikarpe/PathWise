@@ -8,6 +8,9 @@ venv/
 *.egg-info/
 backend/pathfinder.db
 backend/*.db
+# Derived ML artifacts (~20MB). Rebuilt by `python -m app.ml.build_cache`,
+# and regenerated automatically at runtime if absent — never a source of truth.
+backend/.ml_cache/
 .env
 *.env
 
