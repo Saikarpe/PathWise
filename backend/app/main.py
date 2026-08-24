@@ -15,11 +15,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from sqlalchemy import select
+
 from app.api import auth, catalog, chat, dashboard, paths, profile, recommendations
 from app.core.config import settings
-from app.core.database import init_db
+from app.core.database import SessionLocal, init_db
 from app.ml.engine import get_engine
+from app.models.user import User
 from app.schemas import HealthResponse
+from app.seed import DEMO_USERS, seed as seed_demo_data
 
 logging.basicConfig(
     level=logging.INFO if settings.DEBUG else logging.WARNING,
@@ -43,6 +47,21 @@ async def lifespan(app: FastAPI):
         engine.stats().get("prerequisite_rungs"),
         "on" if settings.llm_enabled else "off (local fallback)",
     )
+
+    if settings.AUTO_SEED_DEMO:
+        demo_emails = [spec["email"] for spec in DEMO_USERS]
+        with SessionLocal() as db:
+            already_seeded = db.scalar(select(User).where(User.email.in_(demo_emails))) is not None
+        if not already_seeded:
+            log.info("no demo accounts found — seeding them now")
+            try:
+                seed_demo_data(quiet=not settings.DEBUG)
+            except Exception:
+                # A seeding failure shouldn't take the whole API down — the app
+                # is fully usable without demo accounts, just less inviting to
+                # a reviewer who hasn't registered their own.
+                log.exception("demo seed failed; continuing without it")
+
     yield
 
 

@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     # --- storage ---
     DATABASE_URL: str = f"sqlite:///{(BACKEND_DIR / 'pathfinder.db').as_posix()}"
     COURSES_CSV: str = str(BACKEND_DIR / "data" / "engineering_courses_dataset.csv")
+    # Seeds the 4 demo learners on startup if none of them exist yet. Matters
+    # most on hosts with no persistent disk (Render's free tier, notably) —
+    # the SQLite file doesn't survive a redeploy or a sleep/wake cycle there,
+    # so shelling in to run `python -m app.seed` by hand (itself a paid-plan
+    # feature on Render) would need repeating after every cold start. Demo
+    # accounts are already a public, documented feature of this app (see
+    # /api/auth/demo-users), so auto-creating them is safe; flip off for a
+    # deployment that shouldn't have them at all.
+    AUTO_SEED_DEMO: bool = True
 
     # --- auth ---
     SECRET_KEY: str = "dev-secret-change-me-in-production"
