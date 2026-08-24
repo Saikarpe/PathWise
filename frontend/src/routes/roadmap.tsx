@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api, pct } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
+import { RoadmapGraph, type GraphEdge, type GraphNode } from "@/components/RoadmapGraph";
+import { SkillGapRadar, type GapSkill } from "@/components/SkillGapRadar";
 import {
   Sheet,
   SheetContent,
@@ -58,27 +60,19 @@ type ActivePath = {
     readiness_before?: number;
     readiness_after?: number;
     gap?: {
-      skills?: { skill: string; status: "mastered" | "in_progress" | "missing" }[];
+      // `required` and `current` are what make the gap drawable rather than
+      // just listable — see SkillGapRadar.
+      skills?: GapSkill[];
     };
   };
 };
 
-type GraphNode = {
-  id: string;
-  item_id: string | number;
-  type?: string;
-  title?: string;
-  course_id?: string | number;
-  phase_index?: number;
-  phase_name?: string;
-  hours?: number;
-  skills?: string[];
-  status?: string;
-};
-
+// GraphNode/GraphEdge live with the component that renders them, so there is
+// one definition rather than a copy that can drift. The copy that used to be
+// here declared `id: string`, but the API sends `order_index` — a number.
 type Graph = {
   nodes?: GraphNode[];
-  edges?: { source: string; target: string; kind?: string }[];
+  edges?: GraphEdge[];
 };
 
 type Explain = {
@@ -121,17 +115,6 @@ function RoadmapPage() {
   });
 
   const nodes = graphQ.data?.nodes ?? [];
-  const prereqTargets = new Set(
-    (graphQ.data?.edges ?? []).filter((e) => e.kind === "prerequisite").map((e) => e.target),
-  );
-
-  const phases = new Map<number, { name: string; nodes: GraphNode[] }>();
-  nodes.forEach((n) => {
-    const idx = n.phase_index ?? 0;
-    if (!phases.has(idx)) phases.set(idx, { name: n.phase_name ?? `Phase ${idx + 1}`, nodes: [] });
-    phases.get(idx)!.nodes.push(n);
-  });
-  const phaseList = [...phases.entries()].sort((a, b) => a[0] - b[0]);
 
   // No top-level progress field — derive it from each step's own status,
   // same source the graph nodes already carry.
@@ -171,36 +154,40 @@ function RoadmapPage() {
 
             <Section
               title="The plan"
-              hint="Solid border = prerequisite of an earlier step. Dashed = suggested order."
+              hint="Arrows are hard prerequisites — a step cannot start until everything pointing into it is done. Left-to-right is phase order."
             >
               {graphQ.isLoading ? <Loading /> : null}
               {graphQ.isError ? <ErrorNote error={graphQ.error} /> : null}
-              <div className="grid gap-6 lg:grid-cols-3">
-                {phaseList.map(([idx, phase]) => (
-                  <div key={idx} className="space-y-3">
-                    <h3 className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                      {phase.name}
-                    </h3>
-                    <div className="space-y-3">
-                      {phase.nodes.map((n) => (
-                        <button
-                          key={n.id}
-                          onClick={() => setOpen(n)}
-                          className={`w-full rounded-xl border bg-card px-5 py-4 text-left transition-colors hover:border-primary/50 hover:bg-accent/30 ${
-                            prereqTargets.has(n.id) ? "border-border" : "border-dashed border-border"
-                          }`}
-                        >
-                          <p className="text-sm font-medium">{n.title}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {[n.type, n.hours ? `${n.hours}h` : null, n.status]
-                              .filter(Boolean)
-                              .join(" · ") || "—"}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+
+              <RoadmapGraph
+                nodes={nodes}
+                edges={graphQ.data?.edges ?? []}
+                onSelect={setOpen}
+                selectedId={open?.id ?? null}
+              />
+
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <svg width="26" height="8" aria-hidden="true">
+                    <line x1="0" y1="4" x2="20" y2="4" stroke="var(--color-primary)" strokeWidth="1.75" strokeOpacity="0.5" />
+                    <path d="M 20 1 L 26 4 L 20 7 z" fill="var(--color-primary)" />
+                  </svg>
+                  must be completed first
+                </span>
+                {[
+                  ["completed", "var(--color-success)"],
+                  ["in progress", "var(--color-primary)"],
+                  ["not started", "var(--color-muted-foreground)"],
+                ].map(([label, color]) => (
+                  <span key={label} className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: color }}
+                    />
+                    {label}
+                  </span>
                 ))}
+                <span className="text-muted-foreground/70">click any step for its reasoning</span>
               </div>
             </Section>
 
@@ -223,29 +210,52 @@ function RoadmapPage() {
 
             <PaceCalibration totalHours={pathQ.data?.total_hours} />
 
-            <Section title="How this plan was built">
-              <div className="rounded-xl border border-border bg-card px-6 py-5">
-                <p className="text-sm text-muted-foreground">
-                  Readiness for this goal moves from{" "}
-                  <strong className="font-medium text-foreground">
-                    {pct(pathQ.data?.analysis?.readiness_before)}
-                  </strong>{" "}
-                  to{" "}
-                  <strong className="font-medium text-foreground">
-                    {pct(pathQ.data?.analysis?.readiness_after)}
-                  </strong>
-                  .
-                </p>
-                <Accordion type="single" collapsible className="mt-4">
-                  <AccordionItem value="gap" className="border-t border-border">
-                    <AccordionTrigger className="text-sm">Gap analysis</AccordionTrigger>
-                    <AccordionContent className="grid gap-4 sm:grid-cols-3">
-                      <SkillList title="Required" items={gap.required_skills} />
-                      <SkillList title="Already mastered" items={gap.mastered_skills} />
-                      <SkillList title="Still open" items={gap.open_skills} />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+            <Section
+              title="How this plan was built"
+              hint="The distance between the two rings is the gap this path exists to close."
+            >
+              <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+                <div className="rounded-xl border border-border bg-card px-6 py-5">
+                  <SkillGapRadar skills={gapSkills} />
+                </div>
+
+                <div className="rounded-xl border border-border bg-card px-6 py-5">
+                  <p className="text-sm text-muted-foreground">
+                    Readiness for this goal moves from{" "}
+                    <strong className="font-medium text-foreground">
+                      {pct(pathQ.data?.analysis?.readiness_before)}
+                    </strong>{" "}
+                    to{" "}
+                    <strong className="font-medium text-foreground">
+                      {pct(pathQ.data?.analysis?.readiness_after)}
+                    </strong>
+                    .
+                  </p>
+
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    {[
+                      ["Required", gap.required_skills.length, "text-foreground"],
+                      ["Mastered", gap.mastered_skills.length, "text-success"],
+                      ["Still open", gap.open_skills.length, "text-primary"],
+                    ].map(([label, value, tone]) => (
+                      <div key={String(label)} className="rounded-lg border border-border px-3 py-2.5">
+                        <p className="text-xs text-muted-foreground">{label}</p>
+                        <p className={`mt-0.5 text-xl font-semibold tabular-nums ${tone}`}>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Accordion type="single" collapsible className="mt-4">
+                    <AccordionItem value="gap" className="border-t border-border">
+                      <AccordionTrigger className="text-sm">Every skill, listed</AccordionTrigger>
+                      <AccordionContent className="grid gap-4 sm:grid-cols-3">
+                        <SkillList title="Required" items={gap.required_skills} />
+                        <SkillList title="Already mastered" items={gap.mastered_skills} />
+                        <SkillList title="Still open" items={gap.open_skills} />
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
               </div>
             </Section>
           </>
