@@ -153,10 +153,8 @@ learning-path-recommender/
 
 ## 3. Setup & run (local)
 
-Requires **Python 3.11+** and **Node 18+**. For the full walkthrough —
-prerequisites, exact commands, what auto-seeds on first boot, and a
-troubleshooting table — see [`docs/LOCAL_SETUP.md`](docs/LOCAL_SETUP.md).
-Quick version below.
+Requires **Python 3.11+** and **Node 18+**. No `.env` file is needed for a
+normal local run — every setting below already has a working default.
 
 ### Backend
 
