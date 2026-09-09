@@ -11,7 +11,6 @@ end-to-end against a real catalogue of **2,400 engineering courses** across 12
 branches and 235 tracks.
 
 ## Try it now
-
 | | |
 |---|---|
 | **Live app** | **https://path-wise-two.vercel.app** |
