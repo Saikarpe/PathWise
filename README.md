@@ -353,3 +353,5 @@ PYTHONPATH=. python probe_api.py      # every REST endpoint, with response shape
   boot, which is why they always work. A real deployment wants a managed Postgres.
 - **Cold starts on the live demo take 1–3 minutes** (free-tier spin-up). The ML
   cache removed the refit cost from that, but not the host's own wake time.
+
+  #PATHWISE 
